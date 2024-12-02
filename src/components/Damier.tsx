@@ -15,6 +15,8 @@ const createInitialState = () => {
         cases: Array(24).fill(null), // Chaque case contient une seule image ou null
     };
 };
+const colorLastDuplicate = "bg-gray-500";
+const colorDuplicate = "bg-white";
 
 const Damier = () => {
     const [state, setState] = React.useState(createInitialState());
@@ -66,6 +68,30 @@ const Damier = () => {
         setState(createInitialState());
     };
 
+    const getDuplicateImages = (cases: Array<string | null>) => {
+        const occurrences: Record<string, number> = {};
+        cases.forEach((caseItem) => {
+            if (caseItem) occurrences[caseItem] = (occurrences[caseItem] || 0) + 1;
+        });
+        return Object.keys(occurrences).filter((key) => occurrences[key] > 1);
+    };
+
+    const getLastDuplicate = (cases: Array<string | null>, duplicates: string[]) => {
+        // On parcourt les cases de droite à gauche pour trouver la dernière image doublon
+        for (let i = cases.length - 1; i >= 0; i--) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            if (cases[i] && duplicates.includes(cases[i])) {
+                return cases[i]; // Retourne le dernier doublon trouvé
+            }
+        }
+        return null; // Aucun doublon trouvé
+    };
+
+    // Identifie les doublons
+    const duplicates = getDuplicateImages(state.cases);
+    // Identifie le dernier doublon placé
+    const lastDuplicate = getLastDuplicate(state.cases, duplicates);
     return (
         <>
             <button
@@ -84,13 +110,19 @@ const Damier = () => {
                                 className="flex flex-wrap justify-center gap-4"
                             >
                                 {state.images.map((id, index) => (
-                                    <Draggable key={id+index} draggableId={id+index} index={index}>
+                                    <Draggable key={id + index} draggableId={id + index} index={index}>
                                         {(provided) => (
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
                                                 {...provided.dragHandleProps}
-                                                className="w-16 h-16"
+                                                className={`w-16 h-16 ${
+                                                    duplicates.includes(id)
+                                                        ? id === lastDuplicate
+                                                            ? colorLastDuplicate
+                                                            : colorDuplicate
+                                                        : ''
+                                                }`}
                                             >
                                                 <Image src={`/${id}.png`} alt={id} width={64} height={64} />
                                             </div>
@@ -102,6 +134,7 @@ const Damier = () => {
                         )}
                     </Droppable>
                 </div>
+
                 <div className="grid grid-cols-6 gap-8">
                     {state.cases.map((caseItem, index) => (
                         <Droppable key={`case${index}`} droppableId={`case${index}`}>
@@ -119,7 +152,13 @@ const Damier = () => {
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
                                                         {...provided.dragHandleProps}
-                                                        className="w-full h-full relative"
+                                                        className={`w-full h-full relative ${
+                                                            duplicates.includes(caseItem)
+                                                                ? caseItem === lastDuplicate
+                                                                    ? colorLastDuplicate
+                                                                    : colorDuplicate
+                                                                : ''
+                                                        }`}
                                                     >
                                                         <Image src={`/${caseItem}.png`} alt={caseItem} width={64} height={64} />
                                                         <button
