@@ -102,7 +102,7 @@ const Damier = () => {
                         )}
                     </Droppable>
                 </div>
-                <div className="grid grid-cols-4 gap-8">
+                <div className="grid grid-cols-6 gap-8">
                     {state.cases.map((caseItem, index) => (
                         <Droppable key={`case${index}`} droppableId={`case${index}`}>
                             {(provided) => (
